@@ -1,0 +1,7 @@
+This is a proposed GUI for the CIME/CESM2 Case Control System.  It uses a python 2.7 interface to PyQt5
+Once you have PyQt5 installed you can run:
+
+ python ./setup.py build_ui
+ python -m cccg
+
+To build and run the GUI on your system.   
