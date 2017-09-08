@@ -101,6 +101,6 @@ ENV/
 .mypy_cache/
 
 # Qtcreator generated
-gui/*.py
-gui/*.cpp
-gui/*.h
+cccg/gui/*.py
+cccg/gui/*.cpp
+cccg/gui/*.h
