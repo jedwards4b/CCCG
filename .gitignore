@@ -102,3 +102,5 @@ ENV/
 
 # Qtcreator generated
 gui/*.py
+gui/*.cpp
+gui/*.h
