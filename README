@@ -1,4 +1,6 @@
 This is a proposed GUI for the CIME/CESM2 Case Control System.  It uses a python 2.7 interface to PyQt5
+You will need to set the PYTHONPATH to point to both the CIME tree and this one
+eg PYTHONPATH=$CIMEROOT/scripts:$CIMEROOT/scripts/lib/:$CCCGROOT/cccg
 Once you have PyQt5 installed you can run:
 
  python ./setup.py build_ui
