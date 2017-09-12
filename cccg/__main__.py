@@ -42,7 +42,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if longname is not None:
                 self.CompsetLongName.setEnabled(True)
                 self.CompsetLongName.setText(longname)
-        
+                valid_grids = self.ResList.gridsobj.find_valid_alias_list(longname)
+                self.ResList.clear()
+                for grid in valid_grids:
+                    self.ResList.addItem(grid[0])
+
+                
         
 def main():
     args = sys.argv
@@ -89,8 +94,8 @@ def list_grids(ResList):
     ResList.gridsobj = Grids()
     all_grids = ResList.gridsobj.find_valid_alias_list()
     for grid in all_grids:
-#        print "gridname is {}".format(grid.keys())
         ResList.addItem(grid[0])
+        
         
 if __name__ == "__main__":
     main()
