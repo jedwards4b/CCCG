@@ -87,10 +87,10 @@ def list_compsets(CompsetList):
 
 def list_grids(ResList):
     ResList.gridsobj = Grids()
-    _, _, all_grids = ResList.gridsobj.return_all_values()
+    all_grids = ResList.gridsobj.find_valid_alias_list()
     for grid in all_grids:
-        print "gridname is {}".format(grid.keys())
-    #    ResList.addItems(all_grids.keys())
+#        print "gridname is {}".format(grid.keys())
+        ResList.addItem(grid[0])
         
 if __name__ == "__main__":
     main()
