@@ -24,36 +24,11 @@
        <attribute name="title">
         <string>Case Info</string>
        </attribute>
-       <widget class="QTableWidget" name="CaseTabtableWidget">
-        <property name="geometry">
-         <rect>
-          <x>-5</x>
-          <y>1</y>
-          <width>821</width>
-          <height>501</height>
-         </rect>
-        </property>
-        <property name="rowCount">
-         <number>0</number>
-        </property>
-        <property name="columnCount">
-         <number>2</number>
-        </property>
-        <attribute name="horizontalHeaderCascadingSectionResizes">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>100</number>
-        </attribute>
-        <attribute name="horizontalHeaderStretchLastSection">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <column/>
-        <column/>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="ParameterTree" name="CaseParameterTree"/>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="setup">
        <attribute name="title">
@@ -61,14 +36,11 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <widget class="QTableWidget" name="SetuptableWidget">
-          <attribute name="horizontalHeaderCascadingSectionResizes">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>true</bool>
-          </attribute>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="ParameterTree" name="SetupParameterTree"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -78,14 +50,7 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
-         <widget class="QTableWidget" name="BuildtableWidget">
-          <attribute name="horizontalHeaderCascadingSectionResizes">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>true</bool>
-          </attribute>
-         </widget>
+         <widget class="ParameterTree" name="BuildParameterTree"/>
         </item>
        </layout>
       </widget>
@@ -94,18 +59,8 @@
         <string>Run</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="1" column="0">
-         <widget class="QTableWidget" name="RuntableWidget">
-          <attribute name="horizontalHeaderCascadingSectionResizes">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="horizontalHeaderStretchLastSection">
-           <bool>true</bool>
-          </attribute>
-         </widget>
-        </item>
         <item row="0" column="0">
-         <widget class="ParameterTree" name="graphicsView"/>
+         <widget class="ParameterTree" name="RunParameterTree"/>
         </item>
        </layout>
       </widget>
