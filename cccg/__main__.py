@@ -178,6 +178,11 @@ def list_machines(MachineList):
     MachineList.Machobj = Machines()
     mach_list = MachineList.Machobj.list_available_machines()
     MachineList.addItems(mach_list)
+    name = MachineList.Machobj.get_machine_name()
+    if name is not None:
+        MachineList.setCurrentIndex(mach_list.index(name))
+
+
 
 def list_compsets(CompsetList):
     files = Files()
