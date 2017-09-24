@@ -32,6 +32,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._casenames = []
         self.CaseWindow = {}
+        self.CaselistWidget.itemActivated.connect(self.OpenCaseDialog)
         self.CreateNewcaseButton.clicked.connect(self.OpenCreateNewcase)
 
     def OpenCreateNewcase(self):
@@ -45,6 +46,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             casename = filedialog.selectedFiles()[0]
             self.OpenCase(casename)
 
+    def OpenCaseDialog(self, caselistitem):
+        fullpath = os.path.join(self.CaselistWidget._casedir,caselistitem.text())
+        print fullpath
+        self.OpenCase(fullpath)
+
     def OpenCase(self, casename):
         if casename in self._casenames:
             # casename is already open - change focus?
@@ -52,11 +58,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self._casenames.append(casename)
             self.CaseWindow[casename] = CaseWindow(casename)
-            print "JERE"
             self.CaseWindow[casename].show()
 
-    def SetCaseDirectoryRoot(self, text):
-        
+    def SetCaserootdirectory(self, dirname):
+        # list all subdirectories of dirname
+        for casedir in filter(os.path.isdir, [os.path.join(dirname, f) for f in os.listdir(dirname)]):
+            # Confirm this is a case directory 
+            if os.path.isfile(os.path.join(casedir,"env_case.xml")):
+                self.CaselistWidget.addItem(os.path.basename(casedir))
+                self.CaselistWidget._casedir = dirname
+
 
 
             
@@ -79,7 +90,7 @@ class CreateNewCase(QMainWindow, Ui_CreateNewcase):
         self.CancelCreateNewcase.clicked.connect(self.cancel)
         self.ApplyCreateNewcase.clicked.connect(self.create_new_case)
         self.CaseNameInput.returnPressed.connect(self.set_casename)
-        self.ResList.clicked.connect(self.set_grid)
+        self.ResList.activated[str].connect(self.set_grid)
 
     def set_grid(self, text):
         self.CreateNewcaseArgs["res"] = text
@@ -234,7 +245,7 @@ class CaseWindow(QMainWindow, Ui_CaseWindow):
                     if type == "str":
                         type = 'list'
                 param = Parameter.create(name=vid, type=type, value=value, values=valid_values)
-                param.widget.setToolTip(tip)
+#                param.widget.setToolTip(tip)
                 param.setWritable(writable)
                 parametertree.addParameters(param)
 
@@ -259,13 +270,12 @@ def main():
 
     cccg_config = get_cccg_config()
     for name, value in cccg_config.items("main"):
-        print "HERE name {} value {}".format(name,value)
         if name == "case_root_dir_list":
             values = value.split(',')
             for val in values:
-                main_window.CaseDirectoryRootComboBox.addItem(val)
-            main_window.CaseDirectoryRootComboBox.setCurrentIndex(0)
-    main_window.CaseDirectoryRootComboBox.activated[str].connect(self.SetCaseDirectoryRoot)
+                main_window.CaserootdirectoryComboBox.addItem(val)
+            main_window.CaserootdirectoryComboBox.setCurrentIndex(0)
+    main_window.CaserootdirectoryComboBox.activated[str].connect(main_window.SetCaserootdirectory)
             
         
         
