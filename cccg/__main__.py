@@ -1,6 +1,8 @@
 
 # Standard Python modules
 import sys
+from ConfigParser import SafeConfigParser as config_parser
+    
 # PyQt Modules
 from PyQt5.QtWidgets import QApplication, QMainWindow, QComboBox, QFileDialog,\
     QTableWidgetItem
@@ -11,11 +13,13 @@ import pyqtgraph.parametertree.parameterTypes
 
 # CCCG modules
 from gui.mainwindow_ui import Ui_MainWindow
+from gui.create_newcase_ui import Ui_CreateNewcase
 from gui.casewindow_ui import Ui_CaseWindow
 
 # CIME modules
 from Tools.standard_script_setup import *
 from CIME.case import Case
+from CIME.utils import check_name
 from CIME.XML.machines import Machines
 from CIME.XML.files import Files
 from CIME.XML.compsets import Compsets
@@ -28,35 +32,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._casenames = []
         self.CaseWindow = {}
+        self.CreateNewcaseButton.clicked.connect(self.OpenCreateNewcase)
+
+    def OpenCreateNewcase(self):
+        self.CreateNewcaseDialog = CreateNewCase()
+        self.CreateNewcaseDialog.show()
         
-    def MachineSelect(self, text):
-        """ Handle selection of Machine """
-        machine = self.MachineList.Machobj.set_machine(text)
-        compilers = self.MachineList.Machobj.get_value("COMPILERS").split(',')
-        self.CompilerList.setEnabled(True)
-        self.CompilerList.clear()
-        self.CompilerList.addItems(compilers)
-        mpilibs = self.MachineList.Machobj.get_value("MPILIBS").split(',')
-        mpilibs.append("mpi_serial")
-        self.MPILIBList.setEnabled(True)
-        self.MPILIBList.clear()
-        self.MPILIBList.addItems(mpilibs)
-
-    def CompsetSelect(self, text):
-        files = Files()
-        components = files.get_components("COMPSETS_SPEC_FILE")
-        for comp in components:
-            infile = files.get_value("COMPSETS_SPEC_FILE", {"component":comp})
-            compsetobj = Compsets(infile=infile, files=files)
-            longname, _, _ = compsetobj.get_compset_match(text)
-            if longname is not None:
-                self.CompsetLongName.setEnabled(True)
-                self.CompsetLongName.setText(longname)
-                valid_grids = self.ResList.gridsobj.find_valid_alias_list(longname)
-                self.ResList.clear()
-                for grid in valid_grids:
-                    self.ResList.addItem(grid[0])
-
     def FindCaseDir(self):
         filedialog = QFileDialog()
         filedialog.setFileMode(QFileDialog.Directory)
@@ -71,10 +52,125 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self._casenames.append(casename)
             self.CaseWindow[casename] = CaseWindow(casename)
+            print "JERE"
             self.CaseWindow[casename].show()
+
+    def SetCaseDirectoryRoot(self, text):
         
 
-                
+
+            
+class CreateNewCase(QMainWindow, Ui_CreateNewcase):
+    def __init__(self):
+        super(CreateNewCase, self).__init__()
+        self.setupUi(self)
+        self.CreateNewcaseArgs = {}
+    
+        self.list_models()
+        self.list_machines()
+        self.list_compsets()
+        self.list_grids()
+        self.MachineList.activated[str].connect(self.MachineSelect)
+        self.CompilerList.activated[str].connect(self.CompilerSelect)
+        self.MPILIBList.activated[str].connect(self.MPIlibSelect)
+
+        self.CompsetLongName.returnPressed.connect(self.CompsetLongnameSelect)
+        self.CompsetList.activated[str].connect(self.CompsetSelect)
+        self.CancelCreateNewcase.clicked.connect(self.cancel)
+        self.ApplyCreateNewcase.clicked.connect(self.create_new_case)
+        self.CaseNameInput.returnPressed.connect(self.set_casename)
+        self.ResList.clicked.connect(self.set_grid)
+
+    def set_grid(self, text):
+        self.CreateNewcaseArgs["res"] = text
+
+    def CompilerSelect(self, text):
+        self.CreateNewcaseArgs["compiler"] = text
+
+    def MPIlibSelect(self, text):
+        self.CreateNewcaseArgs["mpilib"] = text
+                       
+    def set_casename(self):
+        text = self.CaseNameInput.text()
+        if check_name(text):
+            self.CreateNewcaseArgs["case"] = text
+            self.ApplyCreateNewcase.setEnabled(True)
+        
+    def create_new_case(self):
+        
+        pass
+
+
+        
+    def cancel(self):
+        self.close()
+
+        
+    def list_models(self):
+        self.ModelList.addItems(("CESM","ACME"))
+    
+    def list_machines(self):
+        self.MachineList.Machobj = Machines()
+        mach_list = self.MachineList.Machobj.list_available_machines()
+        self.MachineList.addItems(mach_list)
+        name = self.MachineList.Machobj.get_machine_name()
+        if name is not None:
+            self.MachineList.setCurrentIndex(mach_list.index(name))
+            self.MachineSelect(name)
+            
+    def list_compsets(self):
+        files = Files()
+        components = files.get_components("COMPSETS_SPEC_FILE")
+        for comp in components:
+            infile = files.get_value("COMPSETS_SPEC_FILE", {"component":comp})
+            compsetobj = Compsets(infile=infile, files=files)
+            _, compsets = compsetobj.return_all_values()
+            self.CompsetList.addItems(sorted(compsets.keys()))
+            self.CompsetList.insertSeparator(999)
+            
+
+    def list_grids(self):
+        self.ResList.gridsobj = Grids()
+        all_grids = self.ResList.gridsobj.find_valid_alias_list()
+        for grid in all_grids:
+            self.ResList.addItem(grid[0])
+        
+    def MachineSelect(self, text):
+        """ Handle selection of Machine """
+        machine = self.MachineList.Machobj.set_machine(text)
+        compilers = self.MachineList.Machobj.get_value("COMPILERS").split(',')
+        self.CompilerList.setEnabled(True)
+        self.CompilerList.clear()
+        self.CompilerList.addItems(compilers)
+        mpilibs = self.MachineList.Machobj.get_value("MPILIBS").split(',')
+        mpilibs.append("mpi_serial")
+        self.MPILIBList.setEnabled(True)
+        self.MPILIBList.clear()
+        self.MPILIBList.addItems(mpilibs)
+        self.CreateNewcaseArgs["machine"] = machine
+        
+    def CompsetLongnameSelect(self):
+        self.CreateNewcaseArgs["compset"] = self.CompsetLongName.text()
+
+        
+    def CompsetSelect(self, text):
+        files = Files()
+        components = files.get_components("COMPSETS_SPEC_FILE")
+        for comp in components:
+            infile = files.get_value("COMPSETS_SPEC_FILE", {"component":comp})
+            compsetobj = Compsets(infile=infile, files=files)
+            longname, _, _ = compsetobj.get_compset_match(text)
+            if longname is not None:
+                self.CompsetLongName.setEnabled(True)
+                self.CompsetLongName.setText(longname)
+                valid_grids = self.ResList.gridsobj.find_valid_alias_list(longname)
+                self.ResList.clear()
+                for grid in valid_grids:
+                    self.ResList.addItem(grid[0])
+                self.CreateNewcaseArgs["compset"] = longname
+
+    
+
                 
 class CaseWindow(QMainWindow, Ui_CaseWindow):
     def __init__(self, casename):
@@ -158,49 +254,58 @@ def main():
 
     app = QApplication(sys.argv)
     main_window = MainWindow()
-    list_models(main_window.ModelList)
-    list_machines(main_window.MachineList)
-    list_compsets(main_window.CompsetList)
-    list_grids(main_window.ResList)
-    main_window.MachineList.activated[str].connect(main_window.MachineSelect)
-    main_window.CompsetList.activated[str].connect(main_window.CompsetSelect)
-    main_window.actionOpen.triggered.connect(main_window.FindCaseDir)
     if args.caseroot:
         main_window.OpenCase(args.caseroot)
-    
+
+    cccg_config = get_cccg_config()
+    for name, value in cccg_config.items("main"):
+        print "HERE name {} value {}".format(name,value)
+        if name == "case_root_dir_list":
+            values = value.split(',')
+            for val in values:
+                main_window.CaseDirectoryRootComboBox.addItem(val)
+            main_window.CaseDirectoryRootComboBox.setCurrentIndex(0)
+    main_window.CaseDirectoryRootComboBox.activated[str].connect(self.SetCaseDirectoryRoot)
+            
+        
+        
     main_window.show()
     sys.exit(app.exec_())
 
-def list_models(ModelList):
-    ModelList.addItems(("CESM","ACME"))
+
+# Should only be called from get_cccg_config()
+def _read_cccg_config_file():
+    """
+    """
+    from ConfigParser import SafeConfigParser as config_parser
+
+    cccg_config_file = os.path.abspath(os.path.join(os.path.expanduser("~"),
+                                                  ".cccg","config"))
+    cccg_config = config_parser()
+    if(os.path.isfile(cccg_config_file)):
+        cccg_config.read(cccg_config_file)
+    else:
+        cccg_config.add_section('main')
+
+    return cccg_config
+
+_CCCGCONFIG = None
+def get_cccg_config():
+    global _CCCGCONFIG
+    if (not _CCCGCONFIG):
+        _CCCGCONFIG = _read_cccg_config_file()
+
+    return _CCCGCONFIG
+
+def reset_cccg_config():
+    """
+    Useful to keep unit tests from interfering with each other
+    """
+    global _CCCGCONFIG
+    _CCCGCONFIG = None
+
+
     
-def list_machines(MachineList):
-    MachineList.Machobj = Machines()
-    mach_list = MachineList.Machobj.list_available_machines()
-    MachineList.addItems(mach_list)
-    name = MachineList.Machobj.get_machine_name()
-    if name is not None:
-        MachineList.setCurrentIndex(mach_list.index(name))
-
-
-
-def list_compsets(CompsetList):
-    files = Files()
-    components = files.get_components("COMPSETS_SPEC_FILE")
-    for comp in components:
-        infile = files.get_value("COMPSETS_SPEC_FILE", {"component":comp})
-        compsetobj = Compsets(infile=infile, files=files)
-        _, compsets = compsetobj.return_all_values()
-        CompsetList.addItems(sorted(compsets.keys()))
-        CompsetList.insertSeparator(999)
-
-
-def list_grids(ResList):
-    ResList.gridsobj = Grids()
-    all_grids = ResList.gridsobj.find_valid_alias_list()
-    for grid in all_grids:
-        ResList.addItem(grid[0])
-        
         
 if __name__ == "__main__":
     main()
