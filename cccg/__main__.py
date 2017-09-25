@@ -25,6 +25,8 @@ from CIME.XML.files import Files
 from CIME.XML.compsets import Compsets
 from CIME.XML.grids import Grids
 
+logger = logging.getLogger(__name__)
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -94,19 +96,34 @@ class CreateNewCase(QMainWindow, Ui_CreateNewcase):
 
     def set_grid(self, text):
         self.CreateNewcaseArgs["res"] = text
+        self.check_ready_to_apply()
 
     def CompilerSelect(self, text):
         self.CreateNewcaseArgs["compiler"] = text
+        self.check_ready_to_apply()
 
     def MPIlibSelect(self, text):
+        logger.info("Here {}".format(text))
         self.CreateNewcaseArgs["mpilib"] = text
+        self.check_ready_to_apply()
                        
     def set_casename(self):
         text = self.CaseNameInput.text()
         if check_name(text):
             self.CreateNewcaseArgs["case"] = text
             self.ApplyCreateNewcase.setEnabled(True)
-        
+        self.check_ready_to_apply()
+
+    def check_ready_to_apply(self):
+        ready = True
+        for var in ("res", "compiler", "mpilib", "case", "compset", "machine"):
+            if var not in self.CreateNewcaseArgs.keys():
+                ready = False
+                logger.info("{} not yet defined".format(var))
+        self.ApplyCreateNewcase.setEnabled(ready)
+
+
+
     def create_new_case(self):
         
         pass
@@ -152,16 +169,22 @@ class CreateNewCase(QMainWindow, Ui_CreateNewcase):
         compilers = self.MachineList.Machobj.get_value("COMPILERS").split(',')
         self.CompilerList.setEnabled(True)
         self.CompilerList.clear()
+        if "compiler" not in self.CreateNewcaseArgs.keys():
+            self.CreateNewcaseArgs["compiler"] = compilers[0]
         self.CompilerList.addItems(compilers)
         mpilibs = self.MachineList.Machobj.get_value("MPILIBS").split(',')
         mpilibs.append("mpi_serial")
+        if "mpilib" not in self.CreateNewcaseArgs.keys():
+            self.CreateNewcaseArgs["mpilib"] = mpilibs[0]
         self.MPILIBList.setEnabled(True)
         self.MPILIBList.clear()
         self.MPILIBList.addItems(mpilibs)
         self.CreateNewcaseArgs["machine"] = machine
+        self.check_ready_to_apply()
         
     def CompsetLongnameSelect(self):
         self.CreateNewcaseArgs["compset"] = self.CompsetLongName.text()
+        self.check_ready_to_apply()
 
         
     def CompsetSelect(self, text):
@@ -179,6 +202,7 @@ class CreateNewCase(QMainWindow, Ui_CreateNewcase):
                 for grid in valid_grids:
                     self.ResList.addItem(grid[0])
                 self.CreateNewcaseArgs["compset"] = longname
+        self.check_ready_to_apply()
 
     
 
