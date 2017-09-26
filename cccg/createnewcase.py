@@ -71,15 +71,14 @@ class CreateNewCase(QMainWindow, Ui_CreateNewcase):
     def create_new_case(self):
         srcroot = os.path.dirname(os.path.abspath(get_cime_root()))
         casename = self.CreateNewcaseArgs["case"]
-        with Case(os.path.join(self._casedir,casename)) as case:
+        with Case(os.path.join(self._casedir,casename), read_only=False) as case:
             case.create(casename,
                         srcroot,
                         self.CreateNewcaseArgs["compset"],
                         self.CreateNewcaseArgs["res"],
                         machine_name=self.CreateNewcaseArgs["machine"],
                         compiler=self.CreateNewcaseArgs["compiler"],
-                        mpilib=self.CreateNewcaseArgs["mpilib"],
-                        run_unsupported=True)
+                        mpilib=self.CreateNewcaseArgs["mpilib"])
         
     def cancel(self):
         self.close()
